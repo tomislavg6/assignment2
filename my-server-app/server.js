@@ -54,47 +54,50 @@ app.get("/students/:studentName", (req, res, next) => {
 });
 
 //Create new student
-app.post("/addstudent", (req, res, next) => {
+    
+    app.post("/addstudent", (req, res, next) => {
 
-    console.log(req.body);
-    console.log("ADDED STUDENT:" + req.body.studentName);
-    var errors = []
-    var insert = 'INSERT INTO students (studentName, studentId, courseName, courseId) VALUES (?,?,?,?)'
-    var params = [req.body.studentName, req.body.studentId, req.body.courseName, req.body.courseId]
-    console.log("parameters created" + params);
+        console.log(req.body);
+        var errors = []
+        var insert = 'INSERT INTO students (studentName, studentId, courseName, courseId) VALUES (?,?,?,?)'
+        var params = [req.body.studentName, req.body.studentId, req.body.courseName, req.body.courseId]
+       
+    
+        db.run(insert, params);
+    
+        if (!req.body.name) {
+            errors.push("Name for students not specified");
+        }
+        if (errors.length) {
+            res.status(400).json({ "error": errors.join(",") });
+            return;
+        }
+        console.log("ADDED STUDENT: " + req.body.studentName);
+    });
 
-    db.run(insert, params);
 
-    if (!req.body.name) {
-        errors.push("Name for students not specified");
-    }
-    if (errors.length) {
-        res.status(400).json({ "error": errors.join(",") });
-        return;
-    }
-
-    /*  var data = {
-         studentName: req.body.studentName,
-         studentId: req.body.studentId,
-         courseName: req.body.courseName,
-         courseId: req.body.courseId,
+/*  var data = {
+     studentName: req.body.studentName,
+     studentId: req.body.studentId,
+     courseName: req.body.courseName,
+     courseId: req.body.courseId,
+ }
+ var insert ='INSERT INTO students (studentName, studentId, courseName, courseId) VALUES (?,?,?,?)'
+ var params =[req.body.studentName, req.body.studentId, req.body.courseName, req.body.courseId] 
+ console.log("parameters created" + params);
+ db.run(insert, [params]);
+ db.run(sql, params, function (err, result) {
+     if (err){
+         res.status(400).json({"error": err.message})
+         return;
      }
-     var insert ='INSERT INTO students (studentName, studentId, courseName, courseId) VALUES (?,?,?,?)'
-     var params =[req.body.studentName, req.body.studentId, req.body.courseName, req.body.courseId] 
-     console.log("parameters created" + params);
-     db.run(insert, [params]);
-     db.run(sql, params, function (err, result) {
-         if (err){
-             res.status(400).json({"error": err.message})
-             return;
-         }
-         res.json({
-             "message": "success",
-             "data": data,
-             "id" : this.lastID
-         })
-     }); */
-});
+     res.json({
+         "message": "success",
+         "data": data,
+         "id" : this.lastID
+     })
+ }); */
+
 
 
 // update students
@@ -126,15 +129,14 @@ app.post("/addstudent", (req, res, next) => {
             })
     });
 }) */
-
+//
 // delete
-app.delete("/deleteStudent/:name", (req, res, next) => {
+/* app.delete("/deleteStudent/:name", (req, res, next) => {
 
     console.log("DELETE Student:" + req.params.name);
+    var remove = 'DELETE FROM students WHERE name = ?'
+    db.run(remove, req.params.name)
 
-    db.run(
-        'DELETE FROM students WHERE name = ?',
-        req.params.name,
         function (err, result) {
             if (err) {
                 res.status(400).json({ "error": res.message })
@@ -142,9 +144,7 @@ app.delete("/deleteStudent/:name", (req, res, next) => {
             }
             res.json({ "message": "deleted", changes: this.changes })
         });
-})
-
-
+}) */
 
 
 // Default response for any other request
