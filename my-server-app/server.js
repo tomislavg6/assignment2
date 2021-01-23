@@ -8,17 +8,17 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 // Server port
-var HTTP_PORT = 8080 
+var HTTP_PORT = 8080
 
 // Start server
 app.listen(HTTP_PORT, () => {
-    console.log("Server running on port %PORT%".replace("%PORT%",HTTP_PORT))
+    console.log("Server running on port %PORT%".replace("%PORT%", HTTP_PORT))
 });
 
 
 // Root endpoint
 app.get("/", (req, res, next) => {
-   res.json({"message":"Ok"})
+    res.json({ "message": "Ok" })
 });
 
 
@@ -30,11 +30,11 @@ app.get("/students", (req, res, next) => {
     var params = [];
     db.all(sql, params, (err, rows) => {
         if (err) {
-          res.status(400).json({"error":err.message});
-          return;
+            res.status(400).json({ "error": err.message });
+            return;
         }
         res.send(JSON.stringify(rows, null, ""));
-      });
+    });
 });
 
 // Get a single students by name
@@ -43,48 +43,57 @@ app.get("/students/:studentName", (req, res, next) => {
     var params = [req.params.name]
     db.get(sql, params, (err, row) => {
         if (err) {
-          res.status(400).json({"error":err.message});
-          return;
-        }
-        res.json({
-            "message":"success",
-            "data":row
-        })
-      });
-});
-
-
-app.post("/addstudent", (req, res, next) => {
-    console.log("ADDED STUDENT:" + req.body.studentName);
-    var errors=[]
-    if (!req.body.name){
-        errors.push("Name for students not specified");
-    }
-    if (errors.length){
-        res.status(400).json({"error":errors.join(",")});
-        return;
-    }
-
-    var data = {
-        studentName: req.body.studentName,
-        studentId: req.body.studentId,
-        courseName: req.body.courseName,
-        courseId: req.body.courseId,
-    }
-    var insert ='INSERT INTO students (studentName, studentId, courseName, courseId) VALUES (?,?,?,?)'
-    var params =[data.studentName, data.studentId, data.courseName, data.courseId]
-    db.run(insert, [params]);
-    /* db.run(sql, params, function (err, result) {
-        if (err){
-            res.status(400).json({"error": err.message})
+            res.status(400).json({ "error": err.message });
             return;
         }
         res.json({
             "message": "success",
-            "data": data,
-            "id" : this.lastID
+            "data": row
         })
-    }); */
+    });
+});
+
+//Create new student
+app.post("/addstudent", (req, res, next) => {
+
+    console.log(req.body);
+    console.log("ADDED STUDENT:" + req.body.studentName);
+    var errors = []
+    var insert = 'INSERT INTO students (studentName, studentId, courseName, courseId) VALUES (?,?,?,?)'
+    var params = [req.body.studentName, req.body.studentId, req.body.courseName, req.body.courseId]
+    console.log("parameters created" + params);
+
+    db.run(insert, params);
+
+    if (!req.body.name) {
+        errors.push("Name for students not specified");
+    }
+    if (errors.length) {
+        res.status(400).json({ "error": errors.join(",") });
+        return;
+    }
+
+    /*  var data = {
+         studentName: req.body.studentName,
+         studentId: req.body.studentId,
+         courseName: req.body.courseName,
+         courseId: req.body.courseId,
+     }
+     var insert ='INSERT INTO students (studentName, studentId, courseName, courseId) VALUES (?,?,?,?)'
+     var params =[req.body.studentName, req.body.studentId, req.body.courseName, req.body.courseId] 
+     console.log("parameters created" + params);
+     db.run(insert, [params]);
+     db.run(sql, params, function (err, result) {
+         if (err){
+             res.status(400).json({"error": err.message})
+             return;
+         }
+         res.json({
+             "message": "success",
+             "data": data,
+             "id" : this.lastID
+         })
+     }); */
 });
 
 
@@ -127,18 +136,18 @@ app.delete("/deleteStudent/:name", (req, res, next) => {
         'DELETE FROM students WHERE name = ?',
         req.params.name,
         function (err, result) {
-            if (err){
-                res.status(400).json({"error": res.message})
+            if (err) {
+                res.status(400).json({ "error": res.message })
                 return;
             }
-            res.json({"message":"deleted", changes: this.changes})
-    });
+            res.json({ "message": "deleted", changes: this.changes })
+        });
 })
 
 
 
 
 // Default response for any other request
-app.use(function(req, res){
+app.use(function (req, res) {
     res.status(404);
 });
