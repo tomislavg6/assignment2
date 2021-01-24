@@ -22,7 +22,6 @@ app.get("/", (req, res, next) => {
 });
 
 
-
 // list all students
 app.get("/students", (req, res, next) => {
     console.log("SELECT students");
@@ -37,106 +36,106 @@ app.get("/students", (req, res, next) => {
     });
 });
 
-// Get a single students by name
-app.get("/students/:studentName", (req, res, next) => {
-    var sql = "select * from students where name = ?"
-    var params = [req.params.name]
+// Get a single student by name
+app.get("/studentsearch/:studentName", (req, res, next) => {
+    var sql = "SELECT * FROM students WHERE lower(studentName) = ?"
+    var params = [req.params.studentName]
     db.get(sql, params, (err, row) => {
         if (err) {
             res.status(400).json({ "error": err.message });
             return;
         }
         res.json({
-            "message": "success",
+            "data": row
+        })
+    });
+});
+
+// Get a single student by id
+app.get("/idsearch/:studentId", (req, res, next) => {
+    var sql = "SELECT * FROM students WHERE studentId = ?"
+    var params = [req.params.studentId]
+    
+    db.get(sql, params, (err, row) => {
+        if (err) {
+            res.status(400).json({ "error": err.message });
+            return;
+        }
+        
+        res.json({
             "data": row
         })
     });
 });
 
 //Create new student
-    
-    app.post("/addstudent", (req, res, next) => {
+app.post("/addstudent", (req, res, next) => {
 
-        console.log(req.body);
-        var errors = []
-        var insert = 'INSERT INTO students (studentName, studentId, courseName, courseId) VALUES (?,?,?,?)'
-        var params = [req.body.studentName, req.body.studentId, req.body.courseName, req.body.courseId]
-       
-    
-        db.run(insert, params);
-    
-        if (!req.body.name) {
-            errors.push("Name for students not specified");
-        }
-        if (errors.length) {
-            res.status(400).json({ "error": errors.join(",") });
-            return;
-        }
-        console.log("ADDED STUDENT: " + req.body.studentName);
-    });
+    console.log(req.body);
+    var errors = []
+    var insert = 'INSERT INTO students (studentName, studentId, courseName, courseId) VALUES (?,?,?,?)'
+    var params = [
+        req.body.studentName,
+        req.body.studentId,
+        req.body.courseName,
+        req.body.courseId
+    ]
 
+    db.run(insert, params);
 
-/*  var data = {
-     studentName: req.body.studentName,
-     studentId: req.body.studentId,
-     courseName: req.body.courseName,
-     courseId: req.body.courseId,
- }
- var insert ='INSERT INTO students (studentName, studentId, courseName, courseId) VALUES (?,?,?,?)'
- var params =[req.body.studentName, req.body.studentId, req.body.courseName, req.body.courseId] 
- console.log("parameters created" + params);
- db.run(insert, [params]);
- db.run(sql, params, function (err, result) {
-     if (err){
-         res.status(400).json({"error": err.message})
-         return;
-     }
-     res.json({
-         "message": "success",
-         "data": data,
-         "id" : this.lastID
-     })
- }); */
-
-
-
-// update students
-// we use COALESCE function to keep the current value if there is no new value (null)
-/* app.put("/updateStudent/:name", (req, res, next) => {
-    console.log("UPDATE students:" + req.params.name);
-    var data = {
-        name: req.body.name,
-        author: req.body.author,
-        publisher: req.body.publisher
+    if (errors.length) {
+        res.status(400).json({ "error": errors.join(",") });
+        return;
     }
-    console.log("UPDATE students: data.name = " + data.name);
-    db.run(
-        `UPDATE students set 
-           name = COALESCE(?,name), 
-           author = COALESCE(?,author),
-           publisher = COALESCE(?,publisher)  
-             WHERE name = ?`,
-        [data.name, data.author, data.publisher, req.params.name],
-        function (err, result) {
-            if (err){
-                res.status(400).json({"error": res.message})
-                return;
-            }
-            res.json({
-                message: "success",
-                data: data,
-                changes: this.changes
-            })
-    });
-}) */
-//
+    console.log("Created new student: " + req.body.studentName);
+
+});
+
+
+// update student
+// we use COALESCE function to keep the current value if there is no new value (null)
+
+app.put("/updateStudent/:studentName", (req, res, next) => {
+
+    var params = [
+        req.body.studentName,
+        req.body.studentId,
+        req.body.courseName,
+        req.body.courseId,
+        req.body.studentName
+    ]
+    var errors = []
+
+    var update = `UPDATE students SET 
+    studentName = COALESCE(?,studentName), 
+    studentId = COALESCE(?,studentId),
+    courseName = COALESCE(?,courseName),
+    courseId = COALESCE(?, courseId)
+      WHERE studentName = ?`
+
+    console.log("UPDATE student: " + req.body.studentName);
+
+    db.run(update, params);
+
+    if (errors) {
+        res.status(400).json({ "error": res.message })
+        return;
+    }
+    res.json({
+        message: "success",
+        data: data,
+        changes: this.changes
+    })
+});
+
 // delete
-/* app.delete("/deleteStudent/:name", (req, res, next) => {
+app.delete("/deletestudent/:studentName", (req, res, next) => {
 
-    console.log("DELETE Student:" + req.params.name);
-    var remove = 'DELETE FROM students WHERE name = ?'
-    db.run(remove, req.params.name)
+    console.log("DELETE student:" + req.params.studentName);
 
+    db.run(
+        'DELETE FROM students WHERE studentName = ?',
+        req.params.studentName,
         function (err, result) {
             if (err) {
                 res.status(400).json({ "error": res.message })
@@ -144,7 +143,9 @@ app.get("/students/:studentName", (req, res, next) => {
             }
             res.json({ "message": "deleted", changes: this.changes })
         });
-}) */
+})
+
+
 
 
 // Default response for any other request
